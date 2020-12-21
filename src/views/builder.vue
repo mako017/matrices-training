@@ -8,19 +8,11 @@
 		<div class="main" v-bind:class="{ active: settings.activeView == 'construct' }">
 			<div class="main-title">
 				<svg @click="switchItem(-1)" viewBox="0 0 50 80" xml:space="preserve">
-					<polyline
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						points="45.63,75.8 0.375,38.087 45.63,0.375 "
-					/>
+					<polyline stroke-linecap="round" stroke-linejoin="round" points="45.63,75.8 0.375,38.087 45.63,0.375 " />
 				</svg>
 				<h2>{{ itemCounter }}</h2>
 				<svg @click="switchItem(1)" viewBox="0 0 50 80" xml:space="preserve">
-					<polyline
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						points="0.375,0.375 45.63,38.087 0.375,75.8 "
-					/>
+					<polyline stroke-linecap="round" stroke-linejoin="round" points="0.375,0.375 45.63,38.087 0.375,75.8 " />
 				</svg>
 			</div>
 			<con :item="item" />
@@ -70,50 +62,10 @@
 					</tbody>
 				</table>
 			</div>
-			<div class="side-container">
-				<h3>Estimated difficulty</h3>
-				<div class="diff-grid">
-					<span>Item</span>
-					<span>Test</span>
-					<md-progress-bar class="md-accent" :md-value="itemDiff"></md-progress-bar>
-					<md-progress-bar class="md-accent" :md-value="testRules.est"></md-progress-bar>
-				</div>
-			</div>
-			<div class="side-container">
-				<h3>Settings</h3>
-				<div class="export-settings">
-					<md-switch v-model="settings.svg" class="md-primary">SVG</md-switch>
-					<md-switch v-model="settings.pdf" class="md-primary">PDF</md-switch>
-				</div>
-				<div class="side-buttons">
-					<md-button class="md-raised" @click="exportAllSVG">Export Set</md-button>
-					<md-button class="md-raised" @click="uploadItems">Upload Set</md-button>
-					<md-button class="md-raised" @click="console.log(0)">Print Test</md-button>
-					<md-button class="md-raised" @click="exportCodes()">Export Itemcodes</md-button>
-				</div>
-			</div>
-			<div class="side-container">
-				<h3>Itemcode</h3>
-				<textarea v-model="item.code" readonly></textarea>
-			</div>
 			<!-- <div class="side-container">
 				<p>{{ currentItem }}</p>
 			</div>-->
 			<button id="save-item" class="final-button" @click="saveItem">Save item</button>
-		</div>
-		<div class="navbar">
-			<span
-				v-bind:class="{ active: settings.activeView == 'help' }"
-				@click="settings.activeView = 'help'"
-			>Help</span>
-			<span
-				v-bind:class="{ active: settings.activeView == 'construct' }"
-				@click="settings.activeView = 'construct'"
-			>Construct</span>
-			<span
-				v-bind:class="{ active: settings.activeView == 'settings' }"
-				@click="settings.activeView = 'settings'"
-			>Settings</span>
 		</div>
 	</div>
 </template>
@@ -121,7 +73,7 @@
 <script>
 import Vue from "vue";
 import { mapGetters } from "vuex";
-import COMM from "@/assets/js/communication.js";
+// import COMM from "@/assets/js/communication.js";
 import collapse from "@/components/builder/collapsible.vue";
 import con from "@/components/builder/construction.vue";
 import drawer from "@/components/builder/item-drawer.vue";
@@ -141,7 +93,6 @@ export default {
 	},
 	data: function() {
 		return {
-			onlineCodes: Array,
 			items: [],
 			item: {
 				id: 0,
@@ -165,7 +116,6 @@ export default {
 		};
 	},
 	methods: {
-		// ...mapActions(["resetItemCode", "pushItem", "downloadOnlinceCodes"]),
 		resetItem() {
 			this.$set(
 				this.item,
@@ -176,10 +126,6 @@ export default {
 			// this.resetItemCode();
 		}, //erledigt
 		saveItem() {
-			if (rCon.testDuplicate(this.item.code, this.onlineCodes)) {
-				alert("Dieses Item existiert schon");
-				return 1;
-			}
 			if (
 				rCon.testDuplicate(
 					this.item.code,
@@ -228,66 +174,9 @@ export default {
 				this.item = Object.assign({}, this.items[this.item.id + +val]);
 			}
 		},
-		async uploadItems() {
-			let upItems = [];
-			this.items.map(item => {
-				if (!rCon.testDuplicate(item.code, this.onlineCodes)) {
-					upItems.push({ ...item });
-				}
-			});
-			await COMM.sendData(upItems, "insertAll");
-			alert(`Uploaded ${upItems.length} Item(s)`);
-			this.onlineCodes = await COMM.readCodes();
-		},
-		exportAllSVG() {
-			if (!this.settings.svg) return 0;
-			function saveSvg(id) {
-				var svg = document.getElementById(id);
-				var serializer = new XMLSerializer();
-				var source = serializer.serializeToString(svg);
-				if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
-					source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-				}
-				if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
-					source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-				}
-				source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-				var url = window.btoa(source);
-				return url;
-			}
-			let JSZip = require("jszip");
-			let FS = require("file-saver");
-			let $ = require("jquery");
-
-			let z = new JSZip();
-			$("svg[id^='mini']").each(function() {
-				z.file(this.id.replace("mini", "") + ".svg", saveSvg(this.id), {
-					base64: true,
-				});
-			});
-
-			z.generateAsync({ type: "blob" }).then(function(blob) {
-				FS.saveAs(blob, "matrices.zip");
-			});
-		},
-		exportCodes() {
-			let FS = require("file-saver");
-			const array = [Object.keys(this.items[0])].concat(this.items);
-
-			let result = array
-				.map(it => {
-					return Object.values(it).join(";");
-				})
-				.join("\n");
-			result = result.match(/^.*?;.*?;/gm).join("\n");
-			let blob = new Blob([result], { type: "text/plain;charset=utf-8" });
-			FS.saveAs(blob, "itemcodes.csv");
-			console.log(result);
-		},
 	},
 	computed: {
 		...mapGetters(["allHelp"]),
-		// ...mapGetters(["allHelp", "allItems", "currentItem", "allOnlineCodes"]),
 		itemCounter: function() {
 			return "Item " + (this.item.id + 1) + " von " + (this.items.length + 1);
 		},
@@ -319,10 +208,6 @@ export default {
 			rules.est = ((rules.add + rules.sub + rules.eka + rules.sm + rules.rot + rules.voll) / (6 * this.items.length)) * 100;
 			return rules;
 		},
-	},
-	async beforeCreate() {
-		this.onlineCodes = await COMM.readCodes();
-		// this.downloadOnlinceCodes();
 	},
 };
 </script>
