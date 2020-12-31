@@ -72,8 +72,8 @@
 
 <script>
 import Vue from "vue";
+import axios from "axios";
 import { mapGetters } from "vuex";
-// import COMM from "@/assets/js/communication.js";
 import collapse from "@/components/builder/collapsible.vue";
 import con from "@/components/builder/construction.vue";
 import drawer from "@/components/builder/item-drawer.vue";
@@ -107,6 +107,12 @@ export default {
 					rot: [],
 					voll: [],
 				},
+			},
+			participant: {
+				code: "",
+				session: Math.random()
+					.toString(36)
+					.substring(2),
 			},
 			settings: {
 				svg: true,
@@ -158,6 +164,14 @@ export default {
 					this.$set(this.items, this.item.id, { ...this.item });
 				}
 			}
+			axios.post(
+				"/php/saveData.php",
+				JSON.stringify({
+					call: "insertData",
+					participant: this.participant,
+					items: this.items,
+				}),
+			);
 			// this.pushItem();
 		}, //erledigt
 		switchItem(val) {
