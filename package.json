@@ -15,7 +15,7 @@
     "file-save": "^0.2.0",
     "file-saver": "^2.0.2",
     "jquery": "^3.5.1",
-    "jszip": "^3.5.0",
+    "jszip": "^3.7.0",
     "sass": "^1.26.10",
     "sass-loader": "^9.0.3",
     "svgjs": "^2.6.2",
